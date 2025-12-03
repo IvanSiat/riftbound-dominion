@@ -11,6 +11,24 @@ let scores = {
     player1: 0,  // You
     player2: 0   // Opponent
 };
+let winningScore = 8;
+
+// ========== GAME OPTIONS ==========
+function toggleAspirantsClimb() {
+    const checkbox = document.getElementById('aspirants-climb');
+    winningScore = checkbox.checked ? 9 : 8;
+
+    const winText = document.getElementById('win-condition-text');
+    winText.textContent = `First to ${winningScore} Wins`;
+
+    // Re-check winner with new condition
+    checkWinner();
+}
+
+function toggleFlip(videoId) {
+    const video = document.getElementById(videoId);
+    video.classList.toggle('flip-vertical');
+}
 
 // ========== ROOM MANAGEMENT ==========
 function generateRoomCode() {
@@ -210,7 +228,7 @@ function updateScoreDisplay(player, broadcast = true) {
 
     scoreEl.textContent = scores[`player${player}`];
 
-    if (scores[`player${player}`] >= 8) {
+    if (scores[`player${player}`] >= winningScore) {
         playerScoreEl.classList.add('winner');
     } else {
         playerScoreEl.classList.remove('winner');
@@ -222,9 +240,9 @@ function updateScoreDisplay(player, broadcast = true) {
 }
 
 function checkWinner() {
-    if (scores.player1 >= 8) {
+    if (scores.player1 >= winningScore) {
         showWinner('You');
-    } else if (scores.player2 >= 8) {
+    } else if (scores.player2 >= winningScore) {
         showWinner('Opponent');
     }
 }
