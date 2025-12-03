@@ -288,7 +288,8 @@ body {
 }
 
 .camera-section {
-    flex: 1;
+    flex: 1 1 0;
+    max-height: 50vh;
     background: var(--bg-dark);
     border: 1px solid var(--border-gray);
     border-radius: 6px;
@@ -327,7 +328,8 @@ body {
 
 .video-container {
     position: relative;
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 0;
     border-radius: 4px;
     overflow: hidden;
     background: var(--bg-black);
