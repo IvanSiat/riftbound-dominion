@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riftbound: Dominion - Remote Play</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+
+<body>
+    <!-- Score Tracker Sidebar -->
+    <aside class="score-sidebar">
+        <div class="logo-section">
+            <h1 class="game-title">RIFTBOUND</h1>
+            <p class="subtitle">DOMINION</p>
+        </div>
+
+        <div class="score-container">
+            <div class="player-score" id="player1-score">
+                <div class="player-label">YOU</div>
+                <div class="score-display">
+                    <button class="score-btn" onclick="adjustScore(1, -1)">−</button>
+                    <span class="score-value" id="score1">0</span>
+                    <button class="score-btn" onclick="adjustScore(1, 1)">+</button>
+                </div>
+                <div class="score-info">First to 8 Wins</div>
+            </div>
+
+            <div class="vs-divider">VS</div>
+
+            <div class="player-score" id="player2-score">
+                <div class="player-label">OPPONENT</div>
+                <div class="score-display">
+                    <button class="score-btn" onclick="adjustScore(2, -1)">−</button>
+                    <span class="score-value" id="score2">0</span>
+                    <button class="score-btn" onclick="adjustScore(2, 1)">+</button>
+                </div>
+                <div class="score-info">First to 8 Wins</div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetScores()">Reset Game</button>
+
+        <!-- Remote Play Controls -->
+        <div class="camera-controls">
+            <h3>🌐 Remote Play</h3>
+            <button class="control-btn create-btn" onclick="createRoom()">Create Room</button>
+            <div class="join-section">
+                <input type="text" id="room-code-input" class="room-input" placeholder="Enter 6-digit code"
+                    maxlength="6">
+                <button class="control-btn join-btn" onclick="joinRoom()">Join</button>
+            </div>
+            <div class="room-display" id="room-display" style="display: none;">
+                <div class="room-label">Your Room Code:</div>
+                <div class="room-code-value" id="room-code-text"></div>
+                <button class="copy-btn" onclick="copyRoomCode()">📋 Copy Code</button>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <span class="status-dot"></span>
+                <span id="status-text">Not Connected</span>
+            </div>
+        </div>
+
+        <!-- Camera Status -->
+        <div class="camera-controls">
+            <h3>📹 Camera</h3>
+            <div class="camera-status" id="camera-status">
+                <span class="status-dot"></span>
+                Camera: Off
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Camera Display Area -->
+    <main class="camera-display">
+        <!-- Opponent Camera -->
+        <section class="camera-section" id="opponent-section">
+            <div class="camera-header">
+                <h2>Opponent's Table</h2>
+                <div class="camera-indicator" id="opponent-indicator"></div>
+            </div>
+            <div class="video-container">
+                <video id="opponent-video" autoplay playsinline></video>
+                <div class="placeholder" id="opponent-placeholder">
+                    <div class="placeholder-icon">🎮</div>
+                    <div class="placeholder-text">Waiting for opponent...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Your Camera -->
+        <section class="camera-section" id="your-section">
+            <div class="camera-header">
+                <h2>Your Table</h2>
+                <div class="camera-indicator" id="your-indicator"></div>
+            </div>
+            <div class="video-container">
+                <video id="your-video" autoplay playsinline muted></video>
+                <div class="placeholder" id="your-placeholder">
+                    <div class="placeholder-icon">📷</div>
+                    <div class="placeholder-text">Click "Create Room" or "Join" to start</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Winner Modal -->
+    <div class="modal" id="winner-modal">
+        <div class="modal-content">
+            <h2 class="winner-text">🏆 <span id="winner-name"></span> WINS! 🏆</h2>
+            <button class="modal-btn" onclick="closeModal()">Continue</button>
+            <button class="modal-btn" onclick="resetScores(); closeModal();">New Game</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
