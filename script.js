@@ -629,14 +629,14 @@ function displaySearchResults(cards, type = 'card') {
             'https://via.placeholder.com/40x56?text=?';
 
         // NEW CHECK: Check for the specific Battlefield classification
-        const isBattlefieldCard = card.classification?.battlefield === "Battlefield";
+        const isBattlefieldCard = card.classification?.type === "Battlefield";
 
         el.innerHTML = `
             <img src="${imageUrl}" class="result-thumb" alt="${card.name}">
             <div class="result-info">
                 <div class="result-name">${card.name}</div>
                 <div class="result-type">
-                    ${card.type || ''}
+                    ${card.classification?.type || ''}
                     ${type === 'battlefield' && !isBattlefieldCard ? '<span style="color:var(--accent-red);">(Not a Battlefield)</span>' : ''}
                 </div>
             </div>
