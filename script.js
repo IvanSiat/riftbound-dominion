@@ -478,8 +478,17 @@ async function searchCards() {
  * @param {string} slotKey 'player1' (You) or 'player2' (Opponent).
  */
 function openBattlefieldSearch(slotKey) {
-    // Only the local player ('player1') should be able to initiate a battlefield search
-    if (slotKey !== 'player1') return; // FIX: Ensure only the local player can set their battlefield
+    // 1. Connection check: Don't allow setting battlefield until connected
+    if (!(connection && connection.open)) {
+        alert("You must be connected to an opponent before setting a Battlefield.");
+        return;
+    }
+
+    // 2. Slot check: Only allow setting your own battlefield
+    if (slotKey !== 'player1') {
+        alert("You can only set your own Battlefield. The opponent's Battlefield is set remotely.");
+        return;
+    }
 
     currentBattlefieldSlot = slotKey;
 
@@ -487,7 +496,7 @@ function openBattlefieldSearch(slotKey) {
     searchPanel.classList.remove('minimized');
 
     const headerTitle = document.getElementById('search-header').querySelector('.panel-title');
-    headerTitle.textContent = '🛡️ SET YOUR BATTLEFIELD'; // FIX: Simplified header since only 'player1' can set it
+    headerTitle.textContent = '🛡️ SET YOUR BATTLEFIELD'; // Simplified, since only player1 can set
 
     // Pre-fill input with 'Battlefield' to encourage the correct search.
     document.getElementById('card-search-input').value = 'Battlefield';
@@ -620,14 +629,14 @@ function displaySearchResults(cards, type = 'card') {
             'https://via.placeholder.com/40x56?text=?';
 
         // NEW CHECK: Check for the specific Battlefield classification
-        const isBattlefieldCard = card.classification?.type === "Battlefield";
+        const isBattlefieldCard = card.classification?.battlefield === "Battlefield";
 
         el.innerHTML = `
             <img src="${imageUrl}" class="result-thumb" alt="${card.name}">
             <div class="result-info">
                 <div class="result-name">${card.name}</div>
                 <div class="result-type">
-                    ${card.classification?.type || ''} 
+                    ${card.type || ''}
                     ${type === 'battlefield' && !isBattlefieldCard ? '<span style="color:var(--accent-red);">(Not a Battlefield)</span>' : ''}
                 </div>
             </div>
