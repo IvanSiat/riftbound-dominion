@@ -6,6 +6,50 @@ let remoteStream = null;
 let roomCode = null;
 let isHost = false;
 
+// ========== FLOATING PANEL DRAGGING ==========
+function makeDraggable(panel, header) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    header.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        panel.style.top = (panel.offsetTop - pos2) + "px";
+        panel.style.left = (panel.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+function togglePanel(panelId) {
+    const panel = document.getElementById(panelId);
+    panel.classList.toggle('minimized');
+}
+
+function openRemoteModal() {
+    document.getElementById('remote-modal').classList.add('show');
+}
+
+function closeRemoteModal() {
+    document.getElementById('remote-modal').classList.remove('show');
+}
+
 // ========== STATE MANAGEMENT ==========
 let scores = {
     player1: 0,  // You
@@ -43,6 +87,16 @@ function toggleFlip(videoId, direction) {
 
     video.style.transform = `scaleX(${scaleX}) scaleY(${scaleY})`;
 }
+
+// ========== PANEL & MODAL INITIALIZATION ==========
+window.addEventListener('DOMContentLoaded', function () {
+    // Make panels draggable
+    makeDraggable(document.getElementById('score-panel'), document.getElementById('score-header'));
+    makeDraggable(document.getElementById('notes-panel'), document.getElementById('notes-header'));
+
+    // Load saved notes
+    loadNotes();
+});
 
 // ========== NOTEPAD MANAGEMENT ==========
 function toggleNotepad() {
