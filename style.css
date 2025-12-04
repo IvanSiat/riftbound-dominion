@@ -819,7 +819,7 @@ video {
     display: flex;
     justify-content: space-between;
     /* Push children to the edges */
-    padding: 0 20px;
+    padding: 0 150px;
     /* Add padding to keep slots off the very edge */
     z-index: 1000;
     /* Ensure it's above the video feeds but below modals/panels */
