@@ -809,17 +809,23 @@ video {
 .battlefield-slots-container {
     position: fixed;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    /* Center the container */
+    left: 0;
+    /* Align to the far left */
+    width: 100%;
+    /* Span the full width */
+    transform: translateY(-50%);
+    /* Center vertically */
     display: flex;
-    gap: 16px;
+    justify-content: space-between;
+    /* Push children to the edges */
+    padding: 0 20px;
+    /* Add padding to keep slots off the very edge */
     z-index: 1000;
     /* Ensure it's above the video feeds but below modals/panels */
 }
 
 .battlefield-slot {
-    width: 200px;
+    width: 250px;
     /* Small width */
     height: 140px;
     /* Small height */
@@ -828,7 +834,7 @@ video {
     background: var(--bg-card);
     overflow: hidden;
     position: relative;
-    cursor: pointer;
+    /* Removed cursor: pointer for opponent slot in HTML, keep for styling */
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     display: flex;
