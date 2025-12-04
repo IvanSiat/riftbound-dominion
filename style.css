@@ -614,3 +614,9 @@ video {
         font-size: 0.75rem;
     }
 }
+
+
+.winner-text-highlight {
+    color: var(--accent-gold);
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}

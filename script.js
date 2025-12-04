@@ -64,7 +64,7 @@ const flipStates = {
 };
 
 // ========== GAME OPTIONS ==========
-function toggleAspirantsClimb() {
+function toggleAspirantsClimb(broadcast = true) {
     const checkbox = document.getElementById('aspirants-climb');
     winningScore = checkbox.checked ? 9 : 8;
 
@@ -73,6 +73,13 @@ function toggleAspirantsClimb() {
 
     // Re-check winner with new condition
     checkWinner();
+
+    if (broadcast && connection && connection.open) {
+        connection.send({
+            type: 'winCondition',
+            value: checkbox.checked
+        });
+    }
 }
 
 function toggleFlip(videoId, direction) {
@@ -254,9 +261,18 @@ function setupDataConnection() {
             if (!isNaN(opponentScore) && opponentScore >= 0 && opponentScore <= 99) {
                 scores.player2 = opponentScore;
                 updateScoreDisplay(2, false);
+                checkWinner();
             } else {
                 console.warn('Invalid score data received:', data);
             }
+        } else if (data.type === 'winCondition') {
+            const checkbox = document.getElementById('aspirants-climb');
+            if (checkbox) {
+                checkbox.checked = !!data.value;
+                toggleAspirantsClimb(false); // Update local state without broadcasting back
+            }
+        } else if (data.type === 'reset') {
+            resetScores(false); // Reset local state without broadcasting back
         }
     });
 
@@ -327,14 +343,15 @@ function adjustScore(player, delta) {
 
 function updateScoreDisplay(player, broadcast = true) {
     const scoreEl = document.getElementById(`score${player}`);
-    const playerScoreEl = document.getElementById(`player${player}-score`);
 
-    scoreEl.textContent = scores[`player${player}`];
+    if (scoreEl) {
+        scoreEl.textContent = scores[`player${player}`];
 
-    if (scores[`player${player}`] >= winningScore) {
-        playerScoreEl.classList.add('winner');
-    } else {
-        playerScoreEl.classList.remove('winner');
+        if (scores[`player${player}`] >= winningScore) {
+            scoreEl.classList.add('winner-text-highlight');
+        } else {
+            scoreEl.classList.remove('winner-text-highlight');
+        }
     }
 
     if (broadcast) {
@@ -361,12 +378,19 @@ function closeModal() {
     document.getElementById('winner-modal').classList.remove('show');
 }
 
-function resetScores() {
+function resetScores(broadcast = true) {
     scores.player1 = 0;
     scores.player2 = 0;
     updateScoreDisplay(1, true);
     updateScoreDisplay(2, false);
-    document.querySelectorAll('.player-score').forEach(el => el.classList.remove('winner'));
+    document.getElementById('score1').classList.remove('winner-text-highlight');
+    document.getElementById('score2').classList.remove('winner-text-highlight');
+
+    if (broadcast && connection && connection.open) {
+        connection.send({
+            type: 'reset'
+        });
+    }
 }
 
 // ========== INITIALIZATION ==========
