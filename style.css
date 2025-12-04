@@ -467,6 +467,98 @@ video {
     background: var(--border-gray);
 }
 
+/* Notepad Styling */
+.notepad-section {
+    background: var(--bg-card);
+    border-radius: 6px;
+    border: 1px solid var(--border-gray);
+    overflow: hidden;
+}
+
+.notepad-header {
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.notepad-header:hover {
+    background: var(--border-gray);
+}
+
+.notepad-header h3 {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    color: var(--text-white);
+    margin: 0;
+}
+
+.collapse-icon {
+    font-size: 0.65rem;
+    color: var(--text-gray);
+    transition: transform 0.3s ease;
+}
+
+.notepad-content {
+    max-height: 200px;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: var(--spacing-sm);
+    overflow: hidden;
+}
+
+.notepad-content.collapsed {
+    max-height: 0;
+    padding: 0 var(--spacing-sm);
+}
+
+.notepad-textarea {
+    width: 100%;
+    min-height: 100px;
+    max-height: 130px;
+    resize: vertical;
+    background: var(--bg-black);
+    color: var(--text-white);
+    border: 1px solid var(--border-gray);
+    border-radius: 4px;
+    padding: var(--spacing-xs);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin-bottom: var(--spacing-xs);
+}
+
+.notepad-textarea:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.notepad-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.clear-notes-btn {
+    width: 100%;
+    padding: 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-gray);
+    background: var(--bg-dark);
+    color: var(--text-gray);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.clear-notes-btn:hover {
+    background: var(--accent-red);
+    color: var(--text-white);
+    border-color: var(--accent-red);
+}
+
+
 @media (max-width: 1024px) {
     body {
         flex-direction: column;

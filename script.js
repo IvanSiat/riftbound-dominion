@@ -44,6 +44,36 @@ function toggleFlip(videoId, direction) {
     video.style.transform = `scaleX(${scaleX}) scaleY(${scaleY})`;
 }
 
+// ========== NOTEPAD MANAGEMENT ==========
+function toggleNotepad() {
+    const content = document.getElementById('notepad-content');
+    const icon = document.getElementById('notepad-icon');
+
+    content.classList.toggle('collapsed');
+    icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+function saveNotes() {
+    const notes = document.getElementById('game-notes').value;
+    localStorage.setItem('riftbound-notes', notes);
+}
+
+function loadNotes() {
+    const savedNotes = localStorage.getItem('riftbound-notes');
+    if (savedNotes) {
+        const textarea = document.getElementById('game-notes');
+        if (textarea) {
+            textarea.value = savedNotes;
+        }
+    }
+}
+
+function clearNotes() {
+    document.getElementById('game-notes').value = '';
+    localStorage.removeItem('riftbound-notes');
+}
+
+
 // ========== ROOM MANAGEMENT ==========
 function generateRoomCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -286,4 +316,9 @@ function resetScores() {
 }
 
 // ========== INITIALIZATION ==========
+// Load notes when page loads
+window.addEventListener('DOMContentLoaded', function () {
+    loadNotes();
+});
+
 console.log('Riftbound: Dominion - Remote Play initialized!');

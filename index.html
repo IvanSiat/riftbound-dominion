@@ -83,6 +83,17 @@
                 Camera: Off
             </div>
         </div>
+        <!-- Personal Notepad -->
+        <div class="notepad-section">
+            <div class="notepad-header" onclick="toggleNotepad()">
+                <h3>📝 Notes</h3>
+                <span class="collapse-icon" id="notepad-icon">▼</span>
+            </div>
+            <div class="notepad-content" id="notepad-content">
+                <textarea id="game-notes" class="notepad-textarea" oninput="saveNotes()"></textarea>
+                <button class="clear-notes-btn" onclick="clearNotes()">Clear Notes</button>
+            </div>
+        </div>
     </aside>
 
     <!-- Main Camera Display Area -->
