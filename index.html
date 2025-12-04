@@ -55,6 +55,30 @@
     </div>
 
     <!-- Remote Play Connect Button -->
+    <!-- Floating Card Search Panel -->
+    <div class="floating-panel" id="search-panel">
+        <div class="panel-header" id="search-header">
+            <span class="panel-title">🔍 Card Search</span>
+            <button class="minimize-btn" onclick="togglePanel('search-panel')">−</button>
+        </div>
+        <div class="panel-content">
+            <div class="search-box">
+                <input type="text" id="card-search-input" placeholder="Search cards..."
+                    onkeypress="handleSearchKey(event)">
+                <button class="search-btn" onclick="searchCards()">Go</button>
+            </div>
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- Card Preview Overlay -->
+    <div id="card-preview-overlay" class="card-preview-overlay" onclick="closeCardPreview()">
+        <div class="card-preview-content" onclick="event.stopPropagation()">
+            <img id="preview-image" src="" alt="Card Preview" onclick="toggleCardZoom()">
+            <button class="close-preview" onclick="closeCardPreview()">×</button>
+        </div>
+    </div>
+
     <button class="connect-fab" onclick="openRemoteModal()" title="Remote Play">🌐</button>
 
     <!-- Remote Play Modal -->

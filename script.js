@@ -100,6 +100,7 @@ window.addEventListener('DOMContentLoaded', function () {
     // Make panels draggable
     makeDraggable(document.getElementById('score-panel'), document.getElementById('score-header'));
     makeDraggable(document.getElementById('notes-panel'), document.getElementById('notes-header'));
+    makeDraggable(document.getElementById('search-panel'), document.getElementById('search-header'));
 
     // Load saved notes
     loadNotes();
@@ -400,3 +401,118 @@ window.addEventListener('DOMContentLoaded', function () {
 });
 
 console.log('Riftbound: Dominion - Remote Play initialized!');
+
+// ========== CARD SEARCH ==========
+function handleSearchKey(event) {
+    if (event.key === 'Enter') {
+        searchCards();
+    }
+}
+
+/**
+ * UPDATED FUNCTION
+ * Uses the correct endpoint (/cards/name), fuzzy parameter, and corsproxy.io.
+ */
+async function searchCards() {
+    const query = document.getElementById('card-search-input').value.trim();
+    if (!query) return;
+
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">Searching...</div>';
+
+    // The documented API endpoint and fuzzy parameter
+    const API_BASE_URL = "https://api.riftcodex.com/cards/name";
+
+    try {
+        // Construct the full URL using 'fuzzy' for partial matching
+        const targetUrl = `${API_BASE_URL}?fuzzy=${encodeURIComponent(query)}`;
+
+        // Use corsproxy.io to bypass the CORS policy block
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+
+        console.log(`Attempting to fetch: ${targetUrl}`);
+        const response = await fetch(proxyUrl);
+
+        // Check if the request itself was successful
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // The documentation shows the cards are inside an 'items' array on the response object.
+        const cards = Array.isArray(data.items) ? data.items : [];
+
+        if (cards.length === 0) {
+            resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No cards found.</div>';
+            return;
+        }
+
+        displaySearchResults(cards);
+
+    } catch (error) {
+        console.error('Search error:', error);
+
+        const errorMessage = error.message.includes('404')
+            ? 'API endpoint not found (404). Check the URL.'
+            : error.message;
+
+        resultsContainer.innerHTML = `<div style="color: #f87171; padding: 10px; text-align: center;">Error: ${errorMessage}</div>`;
+    }
+}
+
+/**
+ * UPDATED FUNCTION
+ * Extracts the image URL from the nested card.media.image_url field.
+ */
+function displaySearchResults(cards) {
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = '';
+
+    // The cards array is passed directly from the searchCards function's data.items
+    if (!Array.isArray(cards) || cards.length === 0) {
+        resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No cards found.</div>';
+        return;
+    }
+
+    cards.forEach(card => {
+        const el = document.createElement('div');
+        el.className = 'search-result-item';
+
+        // Check for the new format: card.media.image_url
+        // Use optional chaining (?.) for safe access to nested property
+        const imageUrl = card.media?.image_url ||
+            card.image ||
+            card.image_url ||
+            card.imageUrl ||
+            'https://via.placeholder.com/40x56?text=?';
+
+        el.innerHTML = `
+            <img src="${imageUrl}" class="result-thumb" alt="${card.name}">
+            <div class="result-info">
+                <div class="result-name">${card.name}</div>
+                <div class="result-type">${card.type || ''}</div>
+            </div>
+        `;
+
+        el.onclick = () => showCardPreview(imageUrl);
+        resultsContainer.appendChild(el);
+    });
+}
+
+function showCardPreview(imageUrl) {
+    const overlay = document.getElementById('card-preview-overlay');
+    const img = document.getElementById('preview-image');
+    img.src = imageUrl;
+    img.classList.remove('zoomed'); // Reset zoom
+    overlay.classList.add('show');
+}
+
+function closeCardPreview() {
+    document.getElementById('card-preview-overlay').classList.remove('show');
+}
+
+function toggleCardZoom() {
+    const img = document.getElementById('preview-image');
+    img.classList.toggle('zoomed');
+}
