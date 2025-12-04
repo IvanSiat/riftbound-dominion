@@ -474,19 +474,47 @@ async function searchCards() {
 // ========== BATTLEFIELD MANAGEMENT (NEW FUNCTIONS) ==========
 
 /**
+ * Handles the click event for a battlefield slot.
+ * Opens search for selection OR shows preview if already set.
+ * @param {string} slotKey 'player1' (You) or 'player2' (Opponent).
+ */
+function handleBattlefieldSlotClick(slotKey) {
+    const currentUrl = battlefieldUrls[slotKey];
+
+    if (currentUrl) {
+        // If a battlefield is set, show a large preview
+        showCardPreview(currentUrl);
+        return;
+    }
+
+    // If no battlefield is set, proceed to open the search panel (only for player1)
+    if (slotKey === 'player1') {
+        openBattlefieldSearch(slotKey);
+    } else {
+        alert("The opponent has not yet set their Battlefield.");
+    }
+}
+
+/**
  * Sets the context for the search panel and opens it for battlefield selection.
  * @param {string} slotKey 'player1' (You) or 'player2' (Opponent).
  */
 function openBattlefieldSearch(slotKey) {
-    // 1. Connection check: Don't allow setting battlefield until connected
-    if (!(connection && connection.open)) {
-        alert("You must be connected to an opponent before setting a Battlefield.");
+    // 1. Slot check: Only allow setting your own battlefield
+    if (slotKey !== 'player1') {
+        alert("You can only set your own Battlefield. The opponent's Battlefield is set remotely.");
         return;
     }
 
-    // 2. Slot check: Only allow setting your own battlefield
-    if (slotKey !== 'player1') {
-        alert("You can only set your own Battlefield. The opponent's Battlefield is set remotely.");
+    // 2. Block if NOT connected
+    if (!connection || !connection.open) {
+        alert("You must be connected to an opponent to set your Battlefield. Please use the '🌐 Remote Play' button to connect first.");
+        return;
+    }
+
+    // 3. Block if already set
+    if (battlefieldUrls.player1) {
+        alert("Your Battlefield is already set. Hit 'Reset Game' to change it.");
         return;
     }
 

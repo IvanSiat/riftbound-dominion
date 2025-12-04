@@ -75,13 +75,13 @@
     </div>
 
     <section class="battlefield-slots-container">
-        <div class="battlefield-slot opponent-slot">
+        <div class="battlefield-slot opponent-slot" onclick="handleBattlefieldSlotClick('player2')">
             <div class="slot-header">Opponent's Battlefield</div>
             <img id="battlefield-img-player2" src="" alt="Opponent's Battlefield" class="battlefield-image">
             <div class="slot-placeholder" id="battlefield-placeholder-player2">⚔️ Waiting for opponent's selection</div>
         </div>
 
-        <div class="battlefield-slot your-slot" onclick="openBattlefieldSearch('player1')">
+        <div class="battlefield-slot your-slot" onclick="handleBattlefieldSlotClick('player1')">
             <div class="slot-header">Your Battlefield</div>
             <img id="battlefield-img-player1" src="" alt="Your Battlefield" class="battlefield-image">
             <div class="slot-placeholder" id="battlefield-placeholder-player1">🛡️ Select Battlefield</div>
