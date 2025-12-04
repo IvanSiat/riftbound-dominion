@@ -39,7 +39,7 @@ body {
 }
 
 .score-sidebar {
-    width: 280px;
+    width: 220px;
     background: var(--bg-dark);
     border-right: 1px solid var(--border-gray);
     padding: var(--spacing-md);
@@ -166,6 +166,75 @@ body {
     color: var(--text-gray);
 }
 
+
+/* Compact Score Layout */
+.compact-score {
+    background: var(--bg-card);
+    border: 1px solid var(--border-gray);
+    border-radius: 6px;
+    padding: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.score-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    justify-content: center;
+}
+
+.score-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.score-btn-compact {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    border: 1px solid var(--border-gray);
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-btn-compact:hover {
+    background: var(--border-gray);
+}
+
+.score-display-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.score-value-large {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--text-white);
+    min-width: 45px;
+    text-align: center;
+}
+
+.vs-text {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    text-transform: lowercase;
+    padding: 0 4px;
+}
+
 .reset-btn,
 .control-btn {
     width: 100%;
@@ -220,6 +289,7 @@ body {
 .room-input {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
     padding: var(--spacing-xs);
     border-radius: 4px;
     border: 1px solid var(--border-gray);

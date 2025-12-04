@@ -59,11 +59,8 @@
         <div class="camera-controls">
             <h3>🌐 Remote Play</h3>
             <button class="control-btn create-btn" onclick="createRoom()">Create Room</button>
-            <div class="join-section">
-                <input type="text" id="room-code-input" class="room-input" placeholder="Enter 6-digit code"
-                    maxlength="6">
-                <button class="control-btn join-btn" onclick="joinRoom()">Join</button>
-            </div>
+            <input type="text" id="room-code-input" class="room-input" placeholder="Enter 6-digit code" maxlength="6">
+            <button class="control-btn join-btn" onclick="joinRoom()">Join</button>
             <div class="room-display" id="room-display" style="display: none;">
                 <div class="room-label">Your Room Code:</div>
                 <div class="room-code-value" id="room-code-text"></div>
@@ -75,14 +72,6 @@
             </div>
         </div>
 
-        <!-- Camera Status -->
-        <div class="camera-controls">
-            <h3>📹 Camera</h3>
-            <div class="camera-status" id="camera-status">
-                <span class="status-dot"></span>
-                Camera: Off
-            </div>
-        </div>
         <!-- Personal Notepad -->
         <div class="notepad-section">
             <div class="notepad-header" onclick="toggleNotepad()">
