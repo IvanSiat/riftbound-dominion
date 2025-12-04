@@ -6,6 +6,13 @@ let remoteStream = null;
 let roomCode = null;
 let isHost = false;
 
+// New variables for Battlefield management
+let currentBattlefieldSlot = null; // 'player1' or 'player2'
+let battlefieldUrls = {
+    player1: null,
+    player2: null
+};
+
 // ========== FLOATING PANEL DRAGGING ==========
 function makeDraggable(panel, header) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -252,6 +259,10 @@ function setupDataConnection() {
     connection.on('open', () => {
         console.log('Data connection established');
         sendScoreUpdate();
+        // Send initial battlefield state after connection opens
+        if (battlefieldUrls.player1) {
+            setBattlefield('player1', battlefieldUrls.player1, true);
+        }
     });
 
     connection.on('data', (data) => {
@@ -274,6 +285,9 @@ function setupDataConnection() {
             }
         } else if (data.type === 'reset') {
             resetScores(false); // Reset local state without broadcasting back
+        } else if (data.type === 'battlefield') { // Handle incoming battlefield update
+            // Opponent sets their battlefield (which is player1 for them), displayed as player2 on our side.
+            setBattlefield('player2', data.url, false); // Do not broadcast back
         }
     });
 
@@ -387,6 +401,8 @@ function resetScores(broadcast = true) {
     document.getElementById('score1').classList.remove('winner-text-highlight');
     document.getElementById('score2').classList.remove('winner-text-highlight');
 
+    resetBattlefields(); // Reset battlefield visuals locally
+
     if (broadcast && connection && connection.open) {
         connection.send({
             type: 'reset'
@@ -402,17 +418,19 @@ window.addEventListener('DOMContentLoaded', function () {
 
 console.log('Riftbound: Dominion - Remote Play initialized!');
 
-// ========== CARD SEARCH ==========
+// ========== CARD SEARCH & BATTLEFIELD SEARCH ==========
+
 function handleSearchKey(event) {
     if (event.key === 'Enter') {
-        searchCards();
+        // If currentBattlefieldSlot is set, run battlefield search, otherwise run card search
+        if (currentBattlefieldSlot) {
+            searchBattlefields();
+        } else {
+            searchCards();
+        }
     }
 }
 
-/**
- * UPDATED FUNCTION
- * Uses the correct endpoint (/cards/name), fuzzy parameter, and corsproxy.io.
- */
 async function searchCards() {
     const query = document.getElementById('card-search-input').value.trim();
     if (!query) return;
@@ -420,27 +438,19 @@ async function searchCards() {
     const resultsContainer = document.getElementById('search-results');
     resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">Searching...</div>';
 
-    // The documented API endpoint and fuzzy parameter
     const API_BASE_URL = "https://api.riftcodex.com/cards/name";
 
     try {
-        // Construct the full URL using 'fuzzy' for partial matching
         const targetUrl = `${API_BASE_URL}?fuzzy=${encodeURIComponent(query)}`;
-
-        // Use corsproxy.io to bypass the CORS policy block
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
-        console.log(`Attempting to fetch: ${targetUrl}`);
         const response = await fetch(proxyUrl);
 
-        // Check if the request itself was successful
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
-
-        // The documentation shows the cards are inside an 'items' array on the response object.
         const cards = Array.isArray(data.items) ? data.items : [];
 
         if (cards.length === 0) {
@@ -448,7 +458,7 @@ async function searchCards() {
             return;
         }
 
-        displaySearchResults(cards);
+        displaySearchResults(cards, 'card');
 
     } catch (error) {
         console.error('Search error:', error);
@@ -461,17 +471,141 @@ async function searchCards() {
     }
 }
 
+// ========== BATTLEFIELD MANAGEMENT (NEW FUNCTIONS) ==========
+
 /**
- * UPDATED FUNCTION
- * Extracts the image URL from the nested card.media.image_url field.
+ * Sets the context for the search panel and opens it for battlefield selection.
+ * @param {string} slotKey 'player1' (You) or 'player2' (Opponent).
  */
-function displaySearchResults(cards) {
+function openBattlefieldSearch(slotKey) {
+    currentBattlefieldSlot = slotKey;
+
+    const searchPanel = document.getElementById('search-panel');
+    searchPanel.classList.remove('minimized');
+
+    const headerTitle = document.getElementById('search-header').querySelector('.panel-title');
+    headerTitle.textContent = slotKey === 'player1' ? '🛡️ SET YOUR BATTLEFIELD' : '⚔️ SET OPPONENT\'S BATTLEFIELD';
+
+    // Pre-fill input with 'Battlefield' to encourage the correct search.
+    document.getElementById('card-search-input').value = 'Battlefield';
+    document.getElementById('search-results').innerHTML =
+        '<div style="color: #888; padding: 10px; text-align: center;">Press "Go" or Enter to search. Results will be filtered for Battlefields if search term is generic.</div>';
+}
+
+/**
+ * Searches the API, and conditionally filters results for 'Battlefield' type.
+ */
+async function searchBattlefields() {
+    const query = document.getElementById('card-search-input').value.trim();
+    if (!query) return;
+
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">Searching for cards...</div>';
+
+    const API_BASE_URL = "https://api.riftcodex.com/cards/name";
+
+    try {
+        const targetUrl = `${API_BASE_URL}?fuzzy=${encodeURIComponent(query)}`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+
+        const response = await fetch(proxyUrl);
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const allCards = Array.isArray(data.items) ? data.items : [];
+
+        let cardsToDisplay = allCards;
+
+        // **********************************************
+        // FIX: Conditional Filter - Only filter if the query is the generic hint 'Battlefield'.
+        // If the user types a specific card name, display all results to ensure the card is found.
+        // **********************************************
+        if (query.toLowerCase() === 'battlefield') {
+            cardsToDisplay = allCards.filter(card => {
+                const nameLower = (card.name || '').toLowerCase();
+                const typeLower = (card.type || '').toLowerCase();
+
+                // Keep cards if type includes 'battlefield' OR if the card's name includes 'battlefield'
+                return typeLower.includes('battlefield') || nameLower.includes('battlefield');
+            });
+        }
+
+
+        if (cardsToDisplay.length === 0) {
+            resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No results found. Try a more generic term or check spelling.</div>';
+            return;
+        }
+
+        // Display results, setting the type to 'battlefield' for selection logic
+        displaySearchResults(cardsToDisplay, 'battlefield');
+
+    } catch (error) {
+        console.error('Battlefield search error:', error);
+        resultsContainer.innerHTML = `<div style="color: #f87171; padding: 10px; text-align: center;">Error: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Sets the battlefield image for a given player slot.
+ * @param {string} playerKey 'player1' or 'player2'.
+ * @param {string} url The image URL.
+ * @param {boolean} broadcast Whether to send the update to the opponent.
+ */
+function setBattlefield(playerKey, url, broadcast = true) {
+    const imgEl = document.getElementById(`battlefield-img-${playerKey}`);
+    const placeholderEl = document.getElementById(`battlefield-placeholder-${playerKey}`);
+
+    if (imgEl && placeholderEl) {
+        imgEl.src = url;
+        imgEl.style.display = 'block';
+        placeholderEl.style.display = 'none';
+        battlefieldUrls[playerKey] = url;
+
+        // If it's YOUR battlefield, and connection is open, broadcast the update
+        if (broadcast && playerKey === 'player1' && connection && connection.open) {
+            connection.send({
+                type: 'battlefield',
+                url: url
+            });
+        }
+    }
+}
+
+/**
+ * Resets the battlefield image slots.
+ */
+function resetBattlefields() {
+    // Reset player 1 (You)
+    document.getElementById('battlefield-img-player1').style.display = 'none';
+    document.getElementById('battlefield-placeholder-player1').style.display = 'block';
+    battlefieldUrls.player1 = null;
+
+    // Reset player 2 (Opponent)
+    document.getElementById('battlefield-img-player2').style.display = 'none';
+    document.getElementById('battlefield-placeholder-player2').style.display = 'block';
+    battlefieldUrls.player2 = null;
+
+    // Reset search context
+    currentBattlefieldSlot = null;
+    document.getElementById('search-panel').querySelector('.panel-title').textContent = '🔍 Card Search';
+}
+
+// ========== DISPLAY & PREVIEW (UPDATED) ==========
+
+/**
+ * Displays search results and attaches the appropriate click handler.
+ * @param {Array} cards - Array of card objects.
+ * @param {string} [type='card'] - 'card' for preview, 'battlefield' for selection.
+ */
+function displaySearchResults(cards, type = 'card') {
     const resultsContainer = document.getElementById('search-results');
     resultsContainer.innerHTML = '';
 
-    // The cards array is passed directly from the searchCards function's data.items
     if (!Array.isArray(cards) || cards.length === 0) {
-        resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No cards found.</div>';
+        resultsContainer.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No items found.</div>';
         return;
     }
 
@@ -479,8 +613,6 @@ function displaySearchResults(cards) {
         const el = document.createElement('div');
         el.className = 'search-result-item';
 
-        // Check for the new format: card.media.image_url
-        // Use optional chaining (?.) for safe access to nested property
         const imageUrl = card.media?.image_url ||
             card.image ||
             card.image_url ||
@@ -495,7 +627,22 @@ function displaySearchResults(cards) {
             </div>
         `;
 
-        el.onclick = () => showCardPreview(imageUrl);
+        // Conditional click handler
+        if (type === 'battlefield' && currentBattlefieldSlot) {
+            el.onclick = () => {
+                // Set the image in the selected slot
+                setBattlefield(currentBattlefieldSlot, imageUrl, true);
+
+                // Close/minimize the search panel and reset context
+                togglePanel('search-panel');
+                currentBattlefieldSlot = null;
+                document.getElementById('search-header').querySelector('.panel-title').textContent = '🔍 Card Search';
+            };
+        } else {
+            // Default to card preview
+            el.onclick = () => showCardPreview(imageUrl);
+        }
+
         resultsContainer.appendChild(el);
     });
 }
