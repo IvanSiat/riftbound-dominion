@@ -478,13 +478,16 @@ async function searchCards() {
  * @param {string} slotKey 'player1' (You) or 'player2' (Opponent).
  */
 function openBattlefieldSearch(slotKey) {
+    // Only the local player ('player1') should be able to initiate a battlefield search
+    if (slotKey !== 'player1') return; // FIX: Ensure only the local player can set their battlefield
+
     currentBattlefieldSlot = slotKey;
 
     const searchPanel = document.getElementById('search-panel');
     searchPanel.classList.remove('minimized');
 
     const headerTitle = document.getElementById('search-header').querySelector('.panel-title');
-    headerTitle.textContent = slotKey === 'player1' ? '🛡️ SET YOUR BATTLEFIELD' : '⚔️ SET OPPONENT\'S BATTLEFIELD';
+    headerTitle.textContent = '🛡️ SET YOUR BATTLEFIELD'; // FIX: Simplified header since only 'player1' can set it
 
     // Pre-fill input with 'Battlefield' to encourage the correct search.
     document.getElementById('card-search-input').value = 'Battlefield';
@@ -519,10 +522,7 @@ async function searchBattlefields() {
 
         let cardsToDisplay = allCards;
 
-        // **********************************************
-        // FIX: Conditional Filter - Only filter if the query is the generic hint 'Battlefield'.
-        // If the user types a specific card name, display all results to ensure the card is found.
-        // **********************************************
+        // Conditional Filter - Only filter if the query is the generic hint 'Battlefield'.
         if (query.toLowerCase() === 'battlefield') {
             cardsToDisplay = allCards.filter(card => {
                 const nameLower = (card.name || '').toLowerCase();
@@ -619,16 +619,27 @@ function displaySearchResults(cards, type = 'card') {
             card.imageUrl ||
             'https://via.placeholder.com/40x56?text=?';
 
+        // NEW CHECK: Check for the specific Battlefield classification
+        const isBattlefieldCard = card.classification?.type === "Battlefield";
+
         el.innerHTML = `
             <img src="${imageUrl}" class="result-thumb" alt="${card.name}">
             <div class="result-info">
                 <div class="result-name">${card.name}</div>
-                <div class="result-type">${card.type || ''}</div>
+                <div class="result-type">
+                    ${card.classification?.type || ''} 
+                    ${type === 'battlefield' && !isBattlefieldCard ? '<span style="color:var(--accent-red);">(Not a Battlefield)</span>' : ''}
+                </div>
             </div>
         `;
 
-        // Conditional click handler
-        if (type === 'battlefield' && currentBattlefieldSlot) {
+        // Default click handler is always to show a preview
+        el.onclick = () => showCardPreview(imageUrl);
+
+        // Conditional logic for selection - only if type is battlefield and it is a VALID card
+        if (type === 'battlefield' && currentBattlefieldSlot && isBattlefieldCard) {
+
+            // OVERRIDE default preview handler with selection handler
             el.onclick = () => {
                 // Set the image in the selected slot
                 setBattlefield(currentBattlefieldSlot, imageUrl, true);
@@ -638,9 +649,15 @@ function displaySearchResults(cards, type = 'card') {
                 currentBattlefieldSlot = null;
                 document.getElementById('search-header').querySelector('.panel-title').textContent = '🔍 Card Search';
             };
-        } else {
-            // Default to card preview
-            el.onclick = () => showCardPreview(imageUrl);
+
+            // Add a visual cue for selectable item
+            el.style.borderColor = 'var(--accent-green)';
+            el.style.cursor = 'pointer';
+
+        } else if (type === 'battlefield' && currentBattlefieldSlot && !isBattlefieldCard) {
+            // If it's the battlefield search context but the card is invalid, dim it visually.
+            el.style.opacity = '0.7';
+            el.style.cursor = 'help'; // Indicate to the user that this item is not primarily selectable
         }
 
         resultsContainer.appendChild(el);
