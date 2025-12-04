@@ -47,9 +47,7 @@
             <div class="player-score" id="player2-score">
                 <div class="player-label">OPPONENT</div>
                 <div class="score-display">
-                    <button class="score-btn" onclick="adjustScore(2, -1)">−</button>
                     <span class="score-value" id="score2">0</span>
-                    <button class="score-btn" onclick="adjustScore(2, 1)">+</button>
                 </div>
                 <div class="score-info">First to 8 Wins</div>
             </div>
@@ -93,7 +91,12 @@
         <section class="camera-section" id="opponent-section">
             <div class="camera-header">
                 <h2>Opponent's Table</h2>
-                <button class="icon-btn" onclick="toggleFlip('opponent-video')" title="Flip Vertically">🔄 Flip</button>
+                <button class="icon-btn" onclick="toggleFlip('opponent-video', 'vertical')" title="Flip Vertically">🔄
+                    Flip
+                    Vertically</button>
+                <button class="icon-btn" onclick="toggleFlip('opponent-video', 'horizontal')"
+                    title="Flip Horizontally">🔄 Flip
+                    Horizontally</button>
                 <div class="camera-indicator" id="opponent-indicator"></div>
             </div>
             <div class="video-container">
@@ -109,7 +112,11 @@
         <section class="camera-section" id="your-section">
             <div class="camera-header">
                 <h2>Your Table</h2>
-                <button class="icon-btn" onclick="toggleFlip('your-video')" title="Flip Vertically">🔄 Flip</button>
+                <button class="icon-btn" onclick="toggleFlip('your-video', 'vertical')" title="Flip Vertically">🔄 Flip
+                    Vertically</button>
+                <button class="icon-btn" onclick="toggleFlip('your-video', 'horizontal')" title="Flip Horizontally">🔄
+                    Flip
+                    Horizontally</button>
                 <div class="camera-indicator" id="your-indicator"></div>
             </div>
             <div class="video-container">
@@ -125,7 +132,7 @@
     <!-- Winner Modal -->
     <div class="modal" id="winner-modal">
         <div class="modal-content">
-            <h2 class="winner-text">🏆 <span id="winner-name"></span> WINS! 🏆</h2>
+            <h2 class="winner-text">🏆 <span id="winner-name"></span> WIN! 🏆</h2>
             <button class="modal-btn" onclick="closeModal()">Continue</button>
             <button class="modal-btn" onclick="resetScores(); closeModal();">New Game</button>
         </div>

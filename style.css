@@ -361,6 +361,10 @@ body {
     transform: scaleY(-1);
 }
 
+.flip-horizontal {
+    transform: scaleX(-1);
+}
+
 .camera-indicator {
     width: 8px;
     height: 8px;

@@ -13,6 +13,12 @@ let scores = {
 };
 let winningScore = 8;
 
+// Track flip states for each video
+const flipStates = {
+    'opponent-video': { horizontal: false, vertical: false },
+    'your-video': { horizontal: false, vertical: false }
+};
+
 // ========== GAME OPTIONS ==========
 function toggleAspirantsClimb() {
     const checkbox = document.getElementById('aspirants-climb');
@@ -25,9 +31,17 @@ function toggleAspirantsClimb() {
     checkWinner();
 }
 
-function toggleFlip(videoId) {
+function toggleFlip(videoId, direction) {
     const video = document.getElementById(videoId);
-    video.classList.toggle('flip-vertical');
+
+    // Toggle the state for this direction
+    flipStates[videoId][direction] = !flipStates[videoId][direction];
+
+    // Apply both transforms together
+    const scaleX = flipStates[videoId].horizontal ? -1 : 1;
+    const scaleY = flipStates[videoId].vertical ? -1 : 1;
+
+    video.style.transform = `scaleX(${scaleX}) scaleY(${scaleY})`;
 }
 
 // ========== ROOM MANAGEMENT ==========
@@ -151,8 +165,14 @@ function setupDataConnection() {
     connection.on('data', (data) => {
         console.log('Received data:', data);
         if (data.type === 'score') {
-            scores.player2 = data.player1;
-            updateScoreDisplay(2, false);
+            // Security: Only accept opponent's score, validate it's a number in valid range
+            const opponentScore = parseInt(data.score);
+            if (!isNaN(opponentScore) && opponentScore >= 0 && opponentScore <= 99) {
+                scores.player2 = opponentScore;
+                updateScoreDisplay(2, false);
+            } else {
+                console.warn('Invalid score data received:', data);
+            }
         }
     });
 
@@ -166,8 +186,7 @@ function sendScoreUpdate() {
     if (connection && connection.open) {
         connection.send({
             type: 'score',
-            player1: scores.player1,
-            player2: scores.player2
+            score: scores.player1  // Only send YOUR score, opponent will display it as their player2
         });
     }
 }
