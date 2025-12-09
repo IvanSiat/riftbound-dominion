@@ -891,6 +891,7 @@ video {
 .might-pill {
     display: flex;
     align-items: center;
+    /* Increased gap to accommodate the new button */
     gap: 8px;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid var(--border-gray);
@@ -915,6 +916,8 @@ video {
     min-width: 24px;
     text-align: center;
     color: var(--text-white);
+    /* The cursor change visually indicates the clickable ones in HTML */
+    cursor: pointer;
 }
 
 .might-you .might-val {
@@ -924,6 +927,49 @@ video {
 .might-them .might-val {
     color: var(--accent-red);
 }
+
+/* New style for the active number input */
+.might-input-active {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+
+    /* Make it blend in */
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 32px;
+    /* Set a fixed width to prevent jump */
+    height: auto;
+    line-height: 1.2rem;
+    /* Match font size */
+    outline: 1px solid var(--accent-blue);
+    /* Visual cue that it's active */
+    border-radius: 4px;
+    color: var(--text-white);
+
+    /* Remove default number input spin buttons */
+    -moz-appearance: textfield;
+}
+
+.might-input-active::-webkit-outer-spin-button,
+.might-input-active::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Ensure the color matches the pill */
+.might-you .might-input-active {
+    color: var(--accent-green);
+}
+
+.might-them .might-input-active {
+    color: var(--accent-red);
+}
+
 
 .might-btn {
     width: 24px;
@@ -943,6 +989,34 @@ video {
 .might-btn:hover {
     background: var(--border-gray);
     transform: scale(1.1);
+}
+
+/* New style for the reset button */
+.might-reset-btn {
+    width: 20px;
+    /* Slightly smaller than the +/- buttons */
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--border-gray);
+    background: var(--bg-dark);
+    color: var(--text-gray);
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+    /* Fix vertical alignment for the symbol */
+    margin-right: -4px;
+    /* Pull it slightly closer to the pill edge */
+}
+
+.might-reset-btn:hover {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: var(--text-white);
+    transform: scale(1.1) rotate(180deg);
 }
 
 /* Ensure the slots look good on smaller screens */
@@ -972,10 +1046,24 @@ video {
         min-width: 16px;
     }
 
+    /* Small screen adjustments for the input */
+    .might-input-active {
+        font-size: 0.9rem;
+        width: 24px;
+        line-height: 0.9rem;
+    }
+
     .might-btn {
         width: 18px;
         height: 18px;
         font-size: 0.7rem;
+    }
+
+    .might-reset-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+        margin-right: -2px;
     }
 
     .slot-header {

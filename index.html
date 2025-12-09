@@ -80,6 +80,7 @@
 
             <div class="might-bar top-bar" onclick="event.stopPropagation()">
                 <div class="might-pill might-them">
+                    <button class="might-reset-btn" onclick="resetMight('opp_them')" title="Reset Might">↺</button>
                     <button class="might-btn" onclick="adjustMight('opp_them', -1)">−</button>
                     <span id="might-opp-them" class="might-val">0</span>
                     <button class="might-btn" onclick="adjustMight('opp_them', 1)">+</button>
@@ -91,8 +92,9 @@
 
             <div class="might-bar bottom-bar" onclick="event.stopPropagation()">
                 <div class="might-pill might-you">
+                    <button class="might-reset-btn" onclick="resetMight('opp_you')" title="Reset Might">↺</button>
                     <button class="might-btn" onclick="adjustMight('opp_you', -1)">−</button>
-                    <span id="might-opp-you" class="might-val">0</span>
+                    <span id="might-opp-you" class="might-val" onclick="activateMightInput(this, 'opp_you')">0</span>
                     <button class="might-btn" onclick="adjustMight('opp_you', 1)">+</button>
                 </div>
             </div>
@@ -103,6 +105,7 @@
 
             <div class="might-bar top-bar" onclick="event.stopPropagation()">
                 <div class="might-pill might-them">
+                    <button class="might-reset-btn" onclick="resetMight('your_them')" title="Reset Might">↺</button>
                     <button class="might-btn" onclick="adjustMight('your_them', -1)">−</button>
                     <span id="might-your-them" class="might-val">0</span>
                     <button class="might-btn" onclick="adjustMight('your_them', 1)">+</button>
@@ -114,8 +117,9 @@
 
             <div class="might-bar bottom-bar" onclick="event.stopPropagation()">
                 <div class="might-pill might-you">
+                    <button class="might-reset-btn" onclick="resetMight('your_you')" title="Reset Might">↺</button>
                     <button class="might-btn" onclick="adjustMight('your_you', -1)">−</button>
-                    <span id="might-your-you" class="might-val">0</span>
+                    <span id="might-your-you" class="might-val" onclick="activateMightInput(this, 'your_you')">0</span>
                     <button class="might-btn" onclick="adjustMight('your_you', 1)">+</button>
                 </div>
             </div>

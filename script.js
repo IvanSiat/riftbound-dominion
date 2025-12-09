@@ -79,8 +79,7 @@ let winningScore = 8;
 
 // Track flip states for each video
 const flipStates = {
-    'opponent-video': { horizontal: false, vertical: false },
-    'your-video': { horizontal: false, vertical: false }
+    'opponent-video': { horizontal: false, vertical: false }
 };
 
 // ========== GAME OPTIONS ==========
@@ -272,8 +271,11 @@ function setupDataConnection() {
     connection.on('open', () => {
         console.log('Data connection established');
         sendScoreUpdate();
-        sendMightUpdate('your_you'); // Sync initial states
+
+        // Sync initial might states for our counters
+        sendMightUpdate('your_you');
         sendMightUpdate('opp_you');
+
         // Send initial battlefield state after connection opens
         if (battlefieldUrls.player1) {
             setBattlefield('player1', battlefieldUrls.player1, true);
@@ -418,26 +420,155 @@ function updateScoreDisplay(player, broadcast = true) {
 
 // ========== MIGHT MANAGEMENT (UPDATED) ==========
 // Keys: 'your_you', 'your_them', 'opp_you', 'opp_them'
-function adjustMight(key, delta) {
-    mightScores[key] = Math.max(0, Math.min(999, mightScores[key] + delta));
 
-    // Broadcast logic: We ideally only broadcast our own moves ('your_you', 'opp_you')
-    // But if we edit 'them' locally for correction, we don't broadcast it to avoid loops
+/**
+ * Adjusts a might counter value or sets it directly.
+ * @param {string} key - The might key ('your_you', 'your_them', etc.)
+ * @param {number} delta - The amount to change the value by (ignored if newValue is set).
+ * @param {number|null} newValue - Specific value to set (optional).
+ */
+function adjustMight(key, delta, newValue = null) {
+    let newMight;
+
+    if (newValue !== null) {
+        newMight = newValue;
+    } else {
+        newMight = mightScores[key] + delta;
+    }
+
+    // Clamp to 0-999 range
+    mightScores[key] = Math.max(0, Math.min(999, newMight));
+
+    // Broadcast if it's one of our counters ('your_you', 'opp_you')
     const shouldBroadcast = (key === 'your_you' || key === 'opp_you');
 
+    // Update the DOM and potentially broadcast
     updateMightDisplay(key, shouldBroadcast);
 }
 
+/**
+ * Replaces the might span with a number input field for manual entry.
+ * @param {HTMLElement} spanElement - The span containing the current might value.
+ * @param {string} key - The might key ('your_you' or 'opp_you').
+ */
+function activateMightInput(spanElement, key) {
+    // Restriction check (though already restricted in HTML)
+    if (key !== 'your_you' && key !== 'opp_you') {
+        return;
+    }
+
+    const currentValue = mightScores[key];
+    const parent = spanElement.parentNode;
+
+    // Check if an input is already active to prevent re-activation
+    if (parent.querySelector('.might-input-active')) {
+        return;
+    }
+
+    // Create the input element
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'might-input-active'; // New class for styling
+    input.value = currentValue;
+    input.min = 0;
+    input.max = 999;
+
+    // Set a data attribute to store the original key
+    input.setAttribute('data-might-key', key);
+
+    // Replace the span with the input
+    parent.replaceChild(input, spanElement);
+    input.focus();
+    input.select(); // Select the number for easy overtyping
+
+    // Define the function to save and revert
+    const saveAndRevert = () => {
+        const key = input.getAttribute('data-might-key');
+        let newValue = parseInt(input.value);
+
+        // Input validation
+        if (isNaN(newValue) || newValue < 0) {
+            newValue = 0;
+        } else if (newValue > 999) {
+            newValue = 999;
+        }
+
+        // Use adjustMight with a specific newValue to set the score directly
+        adjustMight(key, 0, newValue);
+    };
+
+    // Handle blur (focus lost)
+    input.onblur = saveAndRevert;
+
+    // Handle Enter key press
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            input.blur(); // Trigger the onblur event to save and revert
+        }
+    };
+}
+
+/**
+ * Resets a single Might counter to 0.
+ * @param {string} key - The might key ('your_you', 'your_them', etc.)
+ */
+function resetMight(key) {
+    // Only reset if not already 0
+    if (mightScores[key] !== 0) {
+        // Use adjustMight to set the score to 0 directly
+        adjustMight(key, 0, 0);
+    }
+}
+
+/**
+ * Updates the display for a single might counter, recreating the span if an input was active.
+ * **FIXED LOGIC**: Finds the correct parent element by checking for either the original span or the active input.
+ * @param {string} key - The might key.
+ * @param {boolean} broadcast - Whether to send the update to the opponent.
+ */
 function updateMightDisplay(key, broadcast = true) {
     // Map internal keys to DOM IDs
-    // your_you -> might-your-you
-    // your_them -> might-your-them
-    // opp_you -> might-opp-you
-    // opp_them -> might-opp-them
     const domId = `might-${key.replace('_', '-')}`;
+
+    // 1. Try to find the original span element (if not replaced by input)
     const el = document.getElementById(domId);
 
-    if (el) {
+    // 2. Try to find the active input element (if it has replaced the span)
+    // We use the data-might-key attribute to ensure we find the correct active input.
+    const activeInput = document.querySelector(`.might-input-active[data-might-key="${key}"]`);
+
+    // 3. Determine the element being tracked and its parent
+    let targetEl = el || activeInput;
+
+    if (!targetEl) {
+        console.warn(`Could not find DOM element for key: ${key}. Update aborted.`);
+        if (broadcast) {
+            sendMightUpdate(key);
+        }
+        return;
+    }
+
+    // The parent element is the .might-pill wrapper (this is now safe because targetEl is not null)
+    const parentEl = targetEl.parentNode;
+
+    // Logic to handle replacement of active input with a new span
+    if (activeInput) {
+        // If an input is currently active (targetEl === activeInput), replace it with the updated span
+        const newSpan = document.createElement('span');
+        newSpan.id = domId;
+        newSpan.className = 'might-val';
+        newSpan.textContent = mightScores[key];
+
+        // Re-add the click handler, but only for the user's modifiable counters
+        if (key === 'your_you' || key === 'opp_you') {
+            newSpan.setAttribute('onclick', `activateMightInput(this, '${key}')`);
+        }
+
+        parentEl.replaceChild(newSpan, activeInput);
+
+    } else if (el) {
+        // Normal update if it's already a span (targetEl === el)
         el.textContent = mightScores[key];
     }
 
@@ -477,7 +608,8 @@ function resetScores(broadcast = true) {
 
     // Update visuals for all 4 might counters
     ['your_you', 'your_them', 'opp_you', 'opp_them'].forEach(k => {
-        updateMightDisplay(k, k.includes('you') && broadcast); // only broadcast ours
+        // Use adjustMight with newValue=0 to ensure the active input is reverted if needed
+        adjustMight(k, 0, 0);
     });
 
     document.getElementById('score1').classList.remove('winner-text-highlight');
@@ -648,7 +780,7 @@ async function searchBattlefields() {
                 const typeLower = (card.type || '').toLowerCase();
 
                 // Keep cards if type includes 'battlefield' OR if the card's name includes 'battlefield'
-                return typeLower.includes('battlefield') || nameLower.includes('battlefield');
+                return typeLower.includes('battlefield') || nameLower.includes('battlefield') || card.classification?.type === "Battlefield";
             });
         }
 
