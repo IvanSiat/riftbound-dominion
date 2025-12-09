@@ -78,8 +78,10 @@ let mightScores = {
 let winningScore = 8;
 
 // Track flip states for each video
+// FIX: Added 'your-video' to initialization to prevent undefined error.
 const flipStates = {
-    'opponent-video': { horizontal: false, vertical: false }
+    'opponent-video': { horizontal: false, vertical: false },
+    'your-video': { horizontal: false, vertical: false }
 };
 
 // ========== GAME OPTIONS ==========
@@ -103,6 +105,16 @@ function toggleAspirantsClimb(broadcast = true) {
 
 function toggleFlip(videoId, direction) {
     const video = document.getElementById(videoId);
+
+    // Defensive check: Initialize the state if it doesn't exist
+    if (!flipStates[videoId]) {
+        flipStates[videoId] = { horizontal: false, vertical: false };
+    }
+
+    // Defensive check: Initialize the direction state if it doesn't exist
+    if (typeof flipStates[videoId][direction] === 'undefined') {
+        flipStates[videoId][direction] = false;
+    }
 
     // Toggle the state for this direction
     flipStates[videoId][direction] = !flipStates[videoId][direction];
