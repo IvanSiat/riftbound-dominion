@@ -13,6 +13,7 @@
     --accent-green: #10b981;
     --accent-red: #ef4444;
     --accent-gold: #fbbf24;
+    --accent-purple: #8b5cf6;
 
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
@@ -352,7 +353,6 @@ body {
 video {
     width: 100%;
     height: 100%;
-    /* object-fit: cover; */
 }
 
 .placeholder {
@@ -692,7 +692,6 @@ video {
     align-items: center;
     gap: 10px;
     justify-content: space-between;
-    /* MODIFIED: Add space between elements */
 }
 
 .search-result-item:hover {
@@ -725,30 +724,6 @@ video {
 .result-type {
     font-size: 0.75rem;
     color: var(--text-gray);
-}
-
-.action-container {
-    /* NEW: Container for the button */
-    flex-shrink: 0;
-}
-
-.set-battlefield-btn {
-    /* NEW: Styling for the set battlefield button */
-    padding: 4px 8px;
-    border-radius: 4px;
-    border: none;
-    background: var(--accent-green);
-    color: var(--bg-black);
-    font-size: 0.65rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.set-battlefield-btn:hover {
-    opacity: 0.9;
 }
 
 /* ========== CARD PREVIEW ========== */
@@ -806,38 +781,30 @@ video {
     opacity: 1;
 }
 
-/* ========== BATTLEFIELD SLOTS LAYOUT (NEW) ========== */
+/* ========== BATTLEFIELD SLOTS LAYOUT (UPDATED) ========== */
 .battlefield-slots-container {
     position: fixed;
     top: 50%;
     left: 0;
-    /* Align to the far left */
     width: 100%;
-    /* Span the full width */
     transform: translateY(-50%);
-    /* Center vertically */
     display: flex;
     justify-content: space-between;
-    /* Push children to the edges */
-    padding: 0 150px;
-    /* Add padding to keep slots off the very edge */
+    padding: 0 100px;
     z-index: 1000;
-    /* Ensure it's above the video feeds but below modals/panels */
 }
 
 .battlefield-slot {
-    width: 250px;
-    /* Small width */
-    height: 140px;
-    /* Small height */
+    width: 300px;
+    height: 250px;
+    /* Slightly taller for breathing room */
     border: 3px solid var(--border-light);
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--bg-card);
     overflow: hidden;
     position: relative;
-    /* Removed cursor: pointer for opponent slot in HTML, keep for styling */
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -846,41 +813,47 @@ video {
 
 .battlefield-slot:hover {
     border-color: var(--accent-blue);
-    box-shadow: 0 0 15px rgba(74, 158, 255, 0.4);
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
 }
 
 .slot-header {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.8);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: var(--text-gray);
-    font-size: 0.6rem;
-    padding: 2px 5px;
+    font-size: 0.8rem;
     text-align: center;
     font-family: var(--font-display);
-    z-index: 20;
+    z-index: 10;
     user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 8px;
+    border-radius: 4px;
+    opacity: 0.7;
 }
 
 .your-slot .slot-header {
-    border-bottom: 1px solid var(--accent-green);
     color: var(--accent-green);
+    border: 1px solid var(--accent-green);
 }
 
 .opponent-slot .slot-header {
-    border-bottom: 1px solid var(--accent-red);
     color: var(--accent-red);
+    border: 1px solid var(--accent-red);
 }
 
 .slot-placeholder {
     font-family: var(--font-display);
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-align: center;
     opacity: 0.8;
-    z-index: 10;
+    z-index: 5;
+    margin-top: 30px;
+    /* Push below center header */
 }
 
 .battlefield-image {
@@ -891,19 +864,122 @@ video {
     top: 0;
     left: 0;
     z-index: 5;
-    /* Below header and placeholder */
     display: none;
-    /* Initially hidden */
+    opacity: 0.6;
+}
+
+/* ========== MIGHT BARS (UPDATED) ========== */
+.might-bar {
+    position: absolute;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 8px;
+}
+
+.top-bar {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+}
+
+.bottom-bar {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+}
+
+.might-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--border-gray);
+    border-radius: 20px;
+    padding: 4px 10px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.might-you {
+    border-color: var(--accent-green);
+}
+
+.might-them {
+    border-color: var(--accent-red);
+}
+
+.might-val {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+    color: var(--text-white);
+}
+
+.might-you .might-val {
+    color: var(--accent-green);
+}
+
+.might-them .might-val {
+    color: var(--accent-red);
+}
+
+.might-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--border-gray);
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.might-btn:hover {
+    background: var(--border-gray);
+    transform: scale(1.1);
 }
 
 /* Ensure the slots look good on smaller screens */
 @media (max-width: 768px) {
     .battlefield-slots-container {
-        gap: 10px;
+        padding: 0 10px;
+        flex-direction: row;
+        gap: 5px;
     }
 
     .battlefield-slot {
-        width: 150px;
-        height: 100px;
+        width: 170px;
+        height: 140px;
+    }
+
+    .might-bar {
+        padding: 4px;
+    }
+
+    .might-pill {
+        gap: 4px;
+        padding: 2px 6px;
+    }
+
+    .might-val {
+        font-size: 0.9rem;
+        min-width: 16px;
+    }
+
+    .might-btn {
+        width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+    }
+
+    .slot-header {
+        font-size: 0.6rem;
+        padding: 2px 4px;
     }
 }

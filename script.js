@@ -62,6 +62,19 @@ let scores = {
     player1: 0,  // You
     player2: 0   // Opponent
 };
+
+// MIGHT STATE - 4 separate counters
+// your_you: Your might on Your Battlefield
+// your_them: Opponent might on Your Battlefield
+// opp_you: Your might on Opponent Battlefield
+// opp_them: Opponent might on Opponent Battlefield
+let mightScores = {
+    your_you: 0,
+    your_them: 0,
+    opp_you: 0,
+    opp_them: 0
+};
+
 let winningScore = 8;
 
 // Track flip states for each video
@@ -259,6 +272,8 @@ function setupDataConnection() {
     connection.on('open', () => {
         console.log('Data connection established');
         sendScoreUpdate();
+        sendMightUpdate('your_you'); // Sync initial states
+        sendMightUpdate('opp_you');
         // Send initial battlefield state after connection opens
         if (battlefieldUrls.player1) {
             setBattlefield('player1', battlefieldUrls.player1, true);
@@ -268,26 +283,39 @@ function setupDataConnection() {
     connection.on('data', (data) => {
         console.log('Received data:', data);
         if (data.type === 'score') {
-            // Security: Only accept opponent's score, validate it's a number in valid range
             const opponentScore = parseInt(data.score);
             if (!isNaN(opponentScore) && opponentScore >= 0 && opponentScore <= 99) {
                 scores.player2 = opponentScore;
                 updateScoreDisplay(2, false);
                 checkWinner();
-            } else {
-                console.warn('Invalid score data received:', data);
+            }
+        } else if (data.type === 'might') {
+            // MIGHT SYNC LOGIC
+            // When Opponent sends 'your_you' (Their might on their field), it maps to our 'opp_them' (Opponent might on Opponent field)
+            // When Opponent sends 'opp_you' (Their might on our field), it maps to our 'your_them' (Opponent might on Your field)
+
+            const val = parseInt(data.value);
+            if (!isNaN(val)) {
+                if (data.key === 'your_you') {
+                    // They updated their home might -> Update our "opp_them"
+                    mightScores.opp_them = val;
+                    updateMightDisplay('opp_them', false);
+                } else if (data.key === 'opp_you') {
+                    // They updated their away might -> Update our "your_them"
+                    mightScores.your_them = val;
+                    updateMightDisplay('your_them', false);
+                }
             }
         } else if (data.type === 'winCondition') {
             const checkbox = document.getElementById('aspirants-climb');
             if (checkbox) {
                 checkbox.checked = !!data.value;
-                toggleAspirantsClimb(false); // Update local state without broadcasting back
+                toggleAspirantsClimb(false);
             }
         } else if (data.type === 'reset') {
-            resetScores(false); // Reset local state without broadcasting back
-        } else if (data.type === 'battlefield') { // Handle incoming battlefield update
-            // Opponent sets their battlefield (which is player1 for them), displayed as player2 on our side.
-            setBattlefield('player2', data.url, false); // Do not broadcast back
+            resetScores(false);
+        } else if (data.type === 'battlefield') {
+            setBattlefield('player2', data.url, false);
         }
     });
 
@@ -301,8 +329,22 @@ function sendScoreUpdate() {
     if (connection && connection.open) {
         connection.send({
             type: 'score',
-            score: scores.player1  // Only send YOUR score, opponent will display it as their player2
+            score: scores.player1
         });
+    }
+}
+
+function sendMightUpdate(key) {
+    if (connection && connection.open) {
+        // We only broadcast 'your_you' and 'opp_you' (our moves)
+        // The receiver does the mapping
+        if (key === 'your_you' || key === 'opp_you') {
+            connection.send({
+                type: 'might',
+                key: key,
+                value: mightScores[key]
+            });
+        }
     }
 }
 
@@ -374,6 +416,36 @@ function updateScoreDisplay(player, broadcast = true) {
     }
 }
 
+// ========== MIGHT MANAGEMENT (UPDATED) ==========
+// Keys: 'your_you', 'your_them', 'opp_you', 'opp_them'
+function adjustMight(key, delta) {
+    mightScores[key] = Math.max(0, Math.min(999, mightScores[key] + delta));
+
+    // Broadcast logic: We ideally only broadcast our own moves ('your_you', 'opp_you')
+    // But if we edit 'them' locally for correction, we don't broadcast it to avoid loops
+    const shouldBroadcast = (key === 'your_you' || key === 'opp_you');
+
+    updateMightDisplay(key, shouldBroadcast);
+}
+
+function updateMightDisplay(key, broadcast = true) {
+    // Map internal keys to DOM IDs
+    // your_you -> might-your-you
+    // your_them -> might-your-them
+    // opp_you -> might-opp-you
+    // opp_them -> might-opp-them
+    const domId = `might-${key.replace('_', '-')}`;
+    const el = document.getElementById(domId);
+
+    if (el) {
+        el.textContent = mightScores[key];
+    }
+
+    if (broadcast) {
+        sendMightUpdate(key);
+    }
+}
+
 function checkWinner() {
     if (scores.player1 >= winningScore) {
         showWinner('You');
@@ -396,8 +468,18 @@ function closeModal() {
 function resetScores(broadcast = true) {
     scores.player1 = 0;
     scores.player2 = 0;
+
+    // Reset all might
+    mightScores = { your_you: 0, your_them: 0, opp_you: 0, opp_them: 0 };
+
     updateScoreDisplay(1, true);
     updateScoreDisplay(2, false);
+
+    // Update visuals for all 4 might counters
+    ['your_you', 'your_them', 'opp_you', 'opp_them'].forEach(k => {
+        updateMightDisplay(k, k.includes('you') && broadcast); // only broadcast ours
+    });
+
     document.getElementById('score1').classList.remove('winner-text-highlight');
     document.getElementById('score2').classList.remove('winner-text-highlight');
 

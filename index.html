@@ -77,14 +77,48 @@
     <section class="battlefield-slots-container">
         <div class="battlefield-slot opponent-slot" onclick="handleBattlefieldSlotClick('player2')">
             <div class="slot-header">Opponent's Battlefield</div>
+
+            <div class="might-bar top-bar" onclick="event.stopPropagation()">
+                <div class="might-pill might-them">
+                    <button class="might-btn" onclick="adjustMight('opp_them', -1)">−</button>
+                    <span id="might-opp-them" class="might-val">0</span>
+                    <button class="might-btn" onclick="adjustMight('opp_them', 1)">+</button>
+                </div>
+            </div>
+
             <img id="battlefield-img-player2" src="" alt="Opponent's Battlefield" class="battlefield-image">
-            <div class="slot-placeholder" id="battlefield-placeholder-player2">⚔️ Waiting for opponent's selection</div>
+            <div class="slot-placeholder" id="battlefield-placeholder-player2">Waiting...</div>
+
+            <div class="might-bar bottom-bar" onclick="event.stopPropagation()">
+                <div class="might-pill might-you">
+                    <button class="might-btn" onclick="adjustMight('opp_you', -1)">−</button>
+                    <span id="might-opp-you" class="might-val">0</span>
+                    <button class="might-btn" onclick="adjustMight('opp_you', 1)">+</button>
+                </div>
+            </div>
         </div>
 
         <div class="battlefield-slot your-slot" onclick="handleBattlefieldSlotClick('player1')">
             <div class="slot-header">Your Battlefield</div>
+
+            <div class="might-bar top-bar" onclick="event.stopPropagation()">
+                <div class="might-pill might-them">
+                    <button class="might-btn" onclick="adjustMight('your_them', -1)">−</button>
+                    <span id="might-your-them" class="might-val">0</span>
+                    <button class="might-btn" onclick="adjustMight('your_them', 1)">+</button>
+                </div>
+            </div>
+
             <img id="battlefield-img-player1" src="" alt="Your Battlefield" class="battlefield-image">
-            <div class="slot-placeholder" id="battlefield-placeholder-player1">🛡️ Select Battlefield</div>
+            <div class="slot-placeholder" id="battlefield-placeholder-player1">Select</div>
+
+            <div class="might-bar bottom-bar" onclick="event.stopPropagation()">
+                <div class="might-pill might-you">
+                    <button class="might-btn" onclick="adjustMight('your_you', -1)">−</button>
+                    <span id="might-your-you" class="might-val">0</span>
+                    <button class="might-btn" onclick="adjustMight('your_you', 1)">+</button>
+                </div>
+            </div>
         </div>
     </section>
 
