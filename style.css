@@ -795,7 +795,7 @@ video {
 }
 
 .battlefield-slot {
-    width: 300px;
+    width: 400px;
     height: 250px;
     /* Slightly taller for breathing room */
     border: 3px solid var(--border-light);
